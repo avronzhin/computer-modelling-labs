@@ -1,4 +1,4 @@
-package ru.rsreu.computermodellinglabs
+package ru.rsreu.labs
 
 import javafx.application.Application
 import javafx.fxml.FXMLLoader
