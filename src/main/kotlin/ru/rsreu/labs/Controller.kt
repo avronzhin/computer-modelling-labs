@@ -31,15 +31,21 @@ class Controller {
     private lateinit var plotNumberSpinner: Spinner<Int>
 
 
+
     @FXML
     private fun onStartClick() {
-        val generator = MacLarenMarsagliaGenerator(kSpinner.value)
-        val values = MutableList(nSpinner.value) { generator.nextDouble() }
+        val n = nSpinner.value
+        val k = kSpinner.value
+        val plotNumber = plotNumberSpinner.value
+
+        val generator = MacLarenMarsagliaGenerator(k)
+        val values = MutableList(n) { generator.nextDouble() }
         val manager = DistributionInfoManager(values)
         text.text = getEstimationsText(manager.getEstimations())
 
-        val series = manager.getDistributionFunctionsSeries(plotNumberSpinner.value)
-        val step = 1.0 / plotNumberSpinner.value
+        val series = manager.getDistributionFunctionsSeries(plotNumber)
+
+        val step = 1.0 / plotNumber
         hist.children.clear()
         function.children.clear()
         hist.children.add(getHistogram(series.densityFunctionSeries, step))
