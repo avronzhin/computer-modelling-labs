@@ -6,6 +6,7 @@ import javafx.scene.chart.*
 import javafx.scene.chart.XYChart.Series
 import javafx.scene.control.Label
 import javafx.scene.control.Spinner
+import ru.rsreu.labs.distribution.DistributionCriterionInfo
 import ru.rsreu.labs.distribution.DistributionInfoManager
 import ru.rsreu.labs.distribution.DistributionParametersEstimations
 import ru.rsreu.labs.generator.MacLarenMarsagliaGenerator
@@ -28,7 +29,7 @@ class Controller {
     private lateinit var nSpinner: Spinner<Int>
 
     @FXML
-    private lateinit var plotNumberSpinner: Spinner<Int>
+    private lateinit var sectionsCountSpinner: Spinner<Int>
 
 
 
@@ -36,20 +37,28 @@ class Controller {
     private fun onStartClick() {
         val n = nSpinner.value
         val k = kSpinner.value
-        val plotNumber = plotNumberSpinner.value
+        val sectionsCount = sectionsCountSpinner.value
 
         val generator = MacLarenMarsagliaGenerator(k)
         val values = MutableList(n) { generator.nextDouble() }
         val manager = DistributionInfoManager(values)
-        text.text = getEstimationsText(manager.getEstimations())
+        text.text = getEstimationsText(manager.getEstimations()) + "\n" +
+                getCriterionInfoText(manager.getCriterionInfo(sectionsCount))
 
-        val series = manager.getDistributionFunctionsSeries(plotNumber)
-
-        val step = 1.0 / plotNumber
+        val series = manager.getDistributionFunctionsSeries(sectionsCount)
+        val step = 1.0 / sectionsCount
         hist.children.clear()
         function.children.clear()
         hist.children.add(getHistogram(series.densityFunctionSeries, step))
         function.children.add(getFunction(series.distributionFunctionSeries, step))
+    }
+
+    private fun getCriterionInfoText(criterionInfo: DistributionCriterionInfo): String {
+        return criterionInfo.run {
+            "Критерий Пирсона ${chiSquaredCriterionValue.round(3)}, " +
+            "критерий Колмогорова ${kolmogorovCriterionValue.round(3)}," +
+            ""
+        }
     }
 
     private fun getEstimationsText(estimations: DistributionParametersEstimations): String {

@@ -1,5 +1,7 @@
 package ru.rsreu.labs.distribution
 
+import ru.rsreu.labs.distribution.criterion.getChiSquaredCriterionValue
+import ru.rsreu.labs.distribution.criterion.getKolmogorovCriterionValue
 import kotlin.math.pow
 
 class DistributionInfoManager(private val values: List<Double>) {
@@ -29,19 +31,9 @@ class DistributionInfoManager(private val values: List<Double>) {
     }
 
     fun getDistributionFunctionsSeries(plotsNumber: Int): DistributionFunctionsSeries {
-        val plots = getPlots(plotsNumber)
-        val probabilities = getProbabilities(plots)
+        val sections = splitIntoSections(values, plotsNumber)
+        val probabilities = getProbabilities(sections)
         return getDistributionFunctionsSeries(probabilities)
-    }
-
-    private fun getPlots(count: Int): MutableList<Int> {
-        val plots = MutableList(count) { 0 }
-        val plotStep = 1.0 / count
-        values.forEach {
-            val plotNumber = (it / plotStep).toInt()
-            plots[plotNumber]++
-        }
-        return plots
     }
 
     private fun getDistributionFunctionsSeries(probabilities: List<Double>): DistributionFunctionsSeries {
@@ -60,8 +52,21 @@ class DistributionInfoManager(private val values: List<Double>) {
         )
     }
 
-    private fun getProbabilities(plots: List<Int>) = plots.map(Int::toDouble).map { it / values.size }
+    private fun getProbabilities(sections: List<Int>) = sections.map(Int::toDouble).map { it / values.size }
+
+    fun getCriterionInfo(sectionsCount: Int): DistributionCriterionInfo {
+        val chiSquared = getChiSquaredCriterionValue(values, sectionsCount)
+        val kolmogorov = getKolmogorovCriterionValue(values)
+        return DistributionCriterionInfo(
+            chiSquared, kolmogorov
+        )
+    }
 }
+
+data class DistributionCriterionInfo(
+    val chiSquaredCriterionValue: Double,
+    val kolmogorovCriterionValue: Double
+)
 
 data class DistributionFunctionsSeries(
     val densityFunctionSeries: List<Double>,
@@ -74,3 +79,13 @@ data class DistributionParametersEstimations(
     val secondMoment: Double,
     val thirdMoment: Double
 )
+
+fun splitIntoSections(values: List<Double>, sectionsCount: Int): List<Int> {
+    val plots = MutableList(sectionsCount) { 0 }
+    val plotStep = 1.0 / sectionsCount
+    values.forEach {
+        val plotNumber = (it / plotStep).toInt()
+        plots[plotNumber]++
+    }
+    return plots
+}
