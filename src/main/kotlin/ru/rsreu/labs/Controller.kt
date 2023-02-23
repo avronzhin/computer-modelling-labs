@@ -32,7 +32,6 @@ class Controller {
     private lateinit var sectionsCountSpinner: Spinner<Int>
 
 
-
     @FXML
     private fun onStartClick() {
         val n = nSpinner.value
@@ -42,8 +41,9 @@ class Controller {
         val generator = MacLarenMarsagliaGenerator(k)
         val values = MutableList(n) { generator.nextDouble() }
         val manager = DistributionInfoManager(values)
-        text.text = getEstimationsText(manager.getEstimations()) + "\n" +
-                getCriterionInfoText(manager.getCriterionInfo(sectionsCount))
+        text.text = getEstimationsText(manager.getEstimations()) + "\n" + getCriterionInfoText(
+            manager.getCriterionInfo(sectionsCount)
+        )
 
         val series = manager.getDistributionFunctionsSeries(sectionsCount)
         val step = 1.0 / sectionsCount
@@ -55,9 +55,15 @@ class Controller {
 
     private fun getCriterionInfoText(criterionInfo: DistributionCriterionInfo): String {
         return criterionInfo.run {
-            "Критерий Пирсона ${chiSquaredCriterionValue.round(3)}, " +
-            "критерий Колмогорова ${kolmogorovCriterionValue.round(3)}," +
-            ""
+            "Критерий Пирсона ${chiSquaredCriterionValue.round(3)}, " + "критерий Колмогорова ${
+                kolmogorovCriterionValue.round(
+                    3
+                )
+            }, " + "критерий серии нулей vH = ${runCriterionInfo.vH.round(3)} M = ${runCriterionInfo.value.round(3)} " + "vB = ${
+                runCriterionInfo.vB.round(
+                    3
+                )
+            }"
         }
     }
 

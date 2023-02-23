@@ -1,7 +1,9 @@
 package ru.rsreu.labs.distribution
 
+import ru.rsreu.labs.distribution.criterion.RunCriterionInfo
 import ru.rsreu.labs.distribution.criterion.getChiSquaredCriterionValue
 import ru.rsreu.labs.distribution.criterion.getKolmogorovCriterionValue
+import ru.rsreu.labs.distribution.criterion.getZeroRunLengthCriterionValue
 import kotlin.math.pow
 
 class DistributionInfoManager(private val values: List<Double>) {
@@ -57,15 +59,17 @@ class DistributionInfoManager(private val values: List<Double>) {
     fun getCriterionInfo(sectionsCount: Int): DistributionCriterionInfo {
         val chiSquared = getChiSquaredCriterionValue(values, sectionsCount)
         val kolmogorov = getKolmogorovCriterionValue(values)
+        val runCriterionInfo = getZeroRunLengthCriterionValue(values, 0.45, 1.65)
         return DistributionCriterionInfo(
-            chiSquared, kolmogorov
+            chiSquared, kolmogorov, runCriterionInfo
         )
     }
 }
 
 data class DistributionCriterionInfo(
     val chiSquaredCriterionValue: Double,
-    val kolmogorovCriterionValue: Double
+    val kolmogorovCriterionValue: Double,
+    val runCriterionInfo: RunCriterionInfo
 )
 
 data class DistributionFunctionsSeries(

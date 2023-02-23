@@ -1,10 +1,10 @@
 package ru.rsreu.labs.generator
 
-import java.util.*
+import java.util.concurrent.ThreadLocalRandom
 
 class MacLarenMarsagliaGenerator(private val k: Int) {
     private val values: MutableList<Double>
-    private val random = Random()
+    private val random = ThreadLocalRandom.current()
 
     init {
         values = MutableList(k) { random.nextDouble() }
