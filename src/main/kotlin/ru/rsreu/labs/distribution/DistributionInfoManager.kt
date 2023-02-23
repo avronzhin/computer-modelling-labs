@@ -1,12 +1,15 @@
 package ru.rsreu.labs.distribution
 
-import ru.rsreu.labs.distribution.criterion.RunCriterionInfo
-import ru.rsreu.labs.distribution.criterion.getChiSquaredCriterionValue
 import ru.rsreu.labs.distribution.criterion.getKolmogorovCriterionValue
-import ru.rsreu.labs.distribution.criterion.getZeroRunLengthCriterionValue
+import java.lang.IllegalArgumentException
 import kotlin.math.pow
+import kotlin.math.sqrt
 
-class DistributionInfoManager(private val values: List<Double>) {
+class DistributionInfoManager(
+    private val values: List<Double>,
+    private val rangeStart: Double,
+    private val rangeEnd: Double
+) {
     fun getEstimations(): DistributionParametersEstimations {
         val moments = getMoments(3)
         val firstMoment = moments[0]
@@ -22,14 +25,14 @@ class DistributionInfoManager(private val values: List<Double>) {
         )
     }
 
-    private fun getMoments(count: Int) : List<Double>{
-        val momentSums = MutableList(count) {0.0}
+    private fun getMoments(count: Int): List<Double> {
+        val momentSums = MutableList(count) { 0.0 }
         values.forEach { value ->
-            for(i in 0 until  count){
+            for (i in 0 until count) {
                 momentSums[i] += value.pow(i + 1)
             }
         }
-        return momentSums.map{ it / values.size }
+        return momentSums.map { it / values.size }
     }
 
     fun getDistributionFunctionsSeries(plotsNumber: Int): DistributionFunctionsSeries {
@@ -42,7 +45,7 @@ class DistributionInfoManager(private val values: List<Double>) {
         val densityFunctionSeries = MutableList(probabilities.size) { 0.0 }
         val distributionFunctionSeries = MutableList(probabilities.size) { 0.0 }
         var acc = 0.0
-        for(i in probabilities.indices){
+        for (i in probabilities.indices) {
             val value = probabilities[i]
             densityFunctionSeries[i] = value * probabilities.size
             acc += value
@@ -56,20 +59,33 @@ class DistributionInfoManager(private val values: List<Double>) {
 
     private fun getProbabilities(sections: List<Int>) = sections.map(Int::toDouble).map { it / values.size }
 
-    fun getCriterionInfo(sectionsCount: Int): DistributionCriterionInfo {
-        val chiSquared = getChiSquaredCriterionValue(values, sectionsCount)
-        val kolmogorov = getKolmogorovCriterionValue(values)
-        val runCriterionInfo = getZeroRunLengthCriterionValue(values, 0.45, 1.65)
-        return DistributionCriterionInfo(
-            chiSquared, kolmogorov, runCriterionInfo
-        )
+    fun getCriterionInfo(): DistributionCriterionInfo {
+        val theoreticalFunction = { x: Double ->
+            if(x < 0 || x > 2.25) throw IllegalArgumentException()
+            if(x < 0.25) sqrt(x) else 0.25 * x + 0.4375
+        }
+        val kolmogorov = getKolmogorovCriterionValue(values, theoreticalFunction)
+        return DistributionCriterionInfo(kolmogorov)
+    }
+
+    private fun splitIntoSections(values: List<Double>, sectionsCount: Int): List<Int> {
+        return splitIntoSections(values, sectionsCount, rangeStart, rangeEnd)
     }
 }
 
+fun splitIntoSections(values: List<Double>, sectionsCount: Int, rangeStart: Double, rangeEnd: Double): List<Int> {
+    val plots = MutableList(sectionsCount) { 0 }
+    val plotStep = (rangeEnd - rangeStart) / sectionsCount
+    values.forEach {
+        val plotNumber = ((it - rangeStart) / plotStep).toInt()
+        plots[plotNumber]++
+    }
+    return plots
+}
+
+
 data class DistributionCriterionInfo(
-    val chiSquaredCriterionValue: Double,
-    val kolmogorovCriterionValue: Double,
-    val runCriterionInfo: RunCriterionInfo
+    val kolmogorovCriterionValue: Double
 )
 
 data class DistributionFunctionsSeries(
@@ -83,13 +99,3 @@ data class DistributionParametersEstimations(
     val secondMoment: Double,
     val thirdMoment: Double
 )
-
-fun splitIntoSections(values: List<Double>, sectionsCount: Int): List<Int> {
-    val plots = MutableList(sectionsCount) { 0 }
-    val plotStep = 1.0 / sectionsCount
-    values.forEach {
-        val plotNumber = (it / plotStep).toInt()
-        plots[plotNumber]++
-    }
-    return plots
-}

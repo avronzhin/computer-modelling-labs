@@ -24,12 +24,12 @@
         <FlowPane maxWidth="200">
 
             <Label>N</Label>
-            <Spinner fx:id="nSpinner" initialValue="5000" min="10" max="10000" amountToStepBy="100" maxWidth="100"/>
+            <Spinner fx:id="nSpinner" initialValue="1000" min="10" max="10000" amountToStepBy="100" maxWidth="100"/>
         </FlowPane>
 
         <FlowPane maxWidth="200">
             <Label>Steps</Label>
-            <Spinner fx:id="sectionsCountSpinner" min="10" max="50" maxWidth="100"/>
+            <Spinner fx:id="sectionsCountSpinner" initialValue="15" min="10" max="50" maxWidth="100"/>
         </FlowPane>
 
         <Button text="Запустить" onAction="#onStartClick"/>
