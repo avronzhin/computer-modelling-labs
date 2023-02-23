@@ -11,6 +11,7 @@ import ru.rsreu.labs.distribution.DistributionInfoManager
 import ru.rsreu.labs.distribution.DistributionParametersEstimations
 import ru.rsreu.labs.generator.InverseTransformSamplingGenerator
 import ru.rsreu.labs.generator.MacLarenMarsagliaGenerator
+import kotlin.math.sqrt
 
 
 class Controller {
@@ -32,6 +33,15 @@ class Controller {
     @FXML
     private lateinit var sectionsCountSpinner: Spinner<Int>
 
+    companion object {
+        private const val RANGE_START = 0.0
+        private const val RANGE_END = 2.25
+        private val FUNCTION = { x: Double ->
+            if (x < 0 || x > 2.25) throw IllegalArgumentException()
+            if (x < 0.25) sqrt(x) else 0.25 * x + 0.4375
+        }
+    }
+
 
     @FXML
     private fun onStartClick() {
@@ -42,22 +52,18 @@ class Controller {
         val uniformValueGenerator = MacLarenMarsagliaGenerator(k)
         val generator = InverseTransformSamplingGenerator(uniformValueGenerator)
         val values = MutableList(n) { generator.nextDouble() }
-
-        val rangeStart = 0.0
-        val rangeEnd = 2.25
-
-        val manager = DistributionInfoManager(values, rangeStart, rangeEnd)
+        val manager = DistributionInfoManager(values, RANGE_START, RANGE_END)
 
         text.text = getEstimationsText(manager.getEstimations()) + "\n" + getCriterionInfoText(
-            manager.getCriterionInfo()
+            manager.getCriterionInfo(FUNCTION)
         )
 
         val series = manager.getDistributionFunctionsSeries(sectionsCount)
-        val step = (rangeEnd - rangeStart) / sectionsCount
+        val step = (RANGE_END - RANGE_START) / sectionsCount
         hist.children.clear()
         function.children.clear()
-        hist.children.add(getHistogram(series.densityFunctionSeries, step, rangeStart))
-        function.children.add(getFunction(series.distributionFunctionSeries, step, rangeStart))
+        hist.children.add(getHistogram(series.densityFunctionSeries, step, RANGE_START))
+        function.children.add(getFunction(series.distributionFunctionSeries, step, RANGE_START))
     }
 
     private fun getCriterionInfoText(criterionInfo: DistributionCriterionInfo): String {

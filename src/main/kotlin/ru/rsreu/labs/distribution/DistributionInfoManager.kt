@@ -2,6 +2,7 @@ package ru.rsreu.labs.distribution
 
 import ru.rsreu.labs.distribution.criterion.getKolmogorovCriterionValue
 import java.lang.IllegalArgumentException
+import java.util.function.UnaryOperator
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -59,11 +60,7 @@ class DistributionInfoManager(
 
     private fun getProbabilities(sections: List<Int>) = sections.map(Int::toDouble).map { it / values.size }
 
-    fun getCriterionInfo(): DistributionCriterionInfo {
-        val theoreticalFunction = { x: Double ->
-            if(x < 0 || x > 2.25) throw IllegalArgumentException()
-            if(x < 0.25) sqrt(x) else 0.25 * x + 0.4375
-        }
+    fun getCriterionInfo(theoreticalFunction: UnaryOperator<Double>): DistributionCriterionInfo {
         val kolmogorov = getKolmogorovCriterionValue(values, theoreticalFunction)
         return DistributionCriterionInfo(kolmogorov)
     }
