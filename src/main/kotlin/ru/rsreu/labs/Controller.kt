@@ -9,9 +9,10 @@ import javafx.scene.control.Spinner
 import ru.rsreu.labs.distribution.DistributionCriterionInfo
 import ru.rsreu.labs.distribution.DistributionInfoManager
 import ru.rsreu.labs.distribution.DistributionParametersEstimations
-import ru.rsreu.labs.generator.InverseTransformSamplingGenerator
+import ru.rsreu.labs.generator.BoxMullerTransformGenerator
+import ru.rsreu.labs.generator.CentralMarginalProfitGenerator
 import ru.rsreu.labs.generator.MacLarenMarsagliaGenerator
-import kotlin.math.sqrt
+import kotlin.math.*
 
 
 class Controller {
@@ -34,11 +35,25 @@ class Controller {
     private lateinit var sectionsCountSpinner: Spinner<Int>
 
     companion object {
-        private const val RANGE_START = 0.0
-        private const val RANGE_END = 2.25
-        private val FUNCTION = { x: Double ->
-            if (x < 0 || x > 2.25) throw IllegalArgumentException()
-            if (x < 0.25) sqrt(x) else 0.25 * x + 0.4375
+        private const val EXPECTED_VALUE = 1.0
+        private const val DISPERSION = 0.7
+        private const val RANGE_START = EXPECTED_VALUE - 3 * DISPERSION
+        private const val RANGE_END = EXPECTED_VALUE + 3 * DISPERSION
+        fun createFunction(sectionsCount: Int): (Int) -> Double {
+            val step = (RANGE_END - RANGE_START) / sectionsCount
+
+            fun f(x: Double): Double {
+                return exp(-1 * ((x - EXPECTED_VALUE).pow(2)) / (2 * DISPERSION.pow(2))) /
+                        (DISPERSION * sqrt(2 * PI))
+            }
+
+            return { index: Int ->
+                val sectionStart = RANGE_START + step * index
+
+                val f1 = f(sectionStart)
+                val f2 = f(sectionStart + step)
+                step * (min(f1, f2) + abs(f1 - f2) / 2)
+            }
         }
     }
 
@@ -50,12 +65,12 @@ class Controller {
         val sectionsCount = sectionsCountSpinner.value
 
         val uniformValueGenerator = MacLarenMarsagliaGenerator(k)
-        val generator = InverseTransformSamplingGenerator(uniformValueGenerator)
+        val generator = BoxMullerTransformGenerator(uniformValueGenerator, EXPECTED_VALUE, DISPERSION)
         val values = MutableList(n) { generator.nextDouble() }
         val manager = DistributionInfoManager(values, RANGE_START, RANGE_END)
 
         text.text = getEstimationsText(manager.getEstimations()) + "\n" + getCriterionInfoText(
-            manager.getCriterionInfo(FUNCTION)
+            manager.getCriterionInfo(createFunction(sectionsCount), sectionsCount)
         )
 
         val series = manager.getDistributionFunctionsSeries(sectionsCount)
@@ -68,7 +83,7 @@ class Controller {
 
     private fun getCriterionInfoText(criterionInfo: DistributionCriterionInfo): String {
         return criterionInfo.run {
-            "Критерий Колмогорова ${kolmogorovCriterionValue.round(3)}"
+            "Критерий Пирсона ${pearsonCriterion.round(3)}"
         }
     }
 
@@ -91,7 +106,7 @@ class Controller {
 
         series.data.add(XYChart.Data(rangeStart, 0))
 
-        var currentValue = step
+        var currentValue = rangeStart + step
 
         distributionFunctionSeries.forEach {
             series.data.add(XYChart.Data(currentValue, it))

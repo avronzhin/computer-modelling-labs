@@ -1,7 +1,9 @@
 package ru.rsreu.labs.distribution
 
+import ru.rsreu.labs.distribution.criterion.getChiSquaredCriterionValue
 import ru.rsreu.labs.distribution.criterion.getKolmogorovCriterionValue
 import java.lang.IllegalArgumentException
+import java.util.function.Function
 import java.util.function.UnaryOperator
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -48,7 +50,7 @@ class DistributionInfoManager(
         var acc = 0.0
         for (i in probabilities.indices) {
             val value = probabilities[i]
-            densityFunctionSeries[i] = value * probabilities.size
+            densityFunctionSeries[i] = value
             acc += value
             distributionFunctionSeries[i] = acc
         }
@@ -60,9 +62,9 @@ class DistributionInfoManager(
 
     private fun getProbabilities(sections: List<Int>) = sections.map(Int::toDouble).map { it / values.size }
 
-    fun getCriterionInfo(theoreticalFunction: UnaryOperator<Double>): DistributionCriterionInfo {
-        val kolmogorov = getKolmogorovCriterionValue(values, theoreticalFunction)
-        return DistributionCriterionInfo(kolmogorov)
+    fun getCriterionInfo(function: (Int) -> Double, k: Int): DistributionCriterionInfo {
+        val chiSquaredCriterion =  getChiSquaredCriterionValue(values, k, rangeStart, rangeEnd, function)
+        return DistributionCriterionInfo(chiSquaredCriterion)
     }
 
     private fun splitIntoSections(values: List<Double>, sectionsCount: Int): List<Int> {
@@ -75,14 +77,15 @@ fun splitIntoSections(values: List<Double>, sectionsCount: Int, rangeStart: Doub
     val plotStep = (rangeEnd - rangeStart) / sectionsCount
     values.forEach {
         val plotNumber = ((it - rangeStart) / plotStep).toInt()
-        plots[plotNumber]++
+        if(plotNumber in 0 until sectionsCount)
+            plots[plotNumber]++
     }
     return plots
 }
 
 
 data class DistributionCriterionInfo(
-    val kolmogorovCriterionValue: Double
+    val pearsonCriterion: Double
 )
 
 data class DistributionFunctionsSeries(
