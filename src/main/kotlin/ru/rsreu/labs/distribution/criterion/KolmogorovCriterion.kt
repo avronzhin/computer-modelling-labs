@@ -19,8 +19,8 @@ fun getKolmogorovCriterionValue(values: List<Double>): Double {
 
         val plusD = (i.toDouble() / n - theoreticalFunctionValue).absoluteValue
         val minusD = (theoreticalFunctionValue - (i - 1).toDouble() / n).absoluteValue
-        maxD = if (plusD > maxD) plusD else maxD
-        maxD = if (minusD > maxD) minusD else minusD
+        if (plusD > maxD) maxD = plusD
+        if (minusD > maxD) maxD = minusD
     }
     return maxD * sqrt(n.toDouble())
 }
