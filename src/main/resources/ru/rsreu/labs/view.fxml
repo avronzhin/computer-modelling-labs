@@ -17,6 +17,12 @@
     <Label fx:id="text"/>
 
     <HBox>
+        <FlowPane maxWidth="300">
+        <VBox>
+            <RadioButton fx:id="radioButtonCMP" text="Центральная предельная теорема" selected="true"/>
+            <RadioButton fx:id="radioButtonBoxMuller" text="Метод Бокса и Малера"/>
+        </VBox>
+        </FlowPane>
         <FlowPane maxWidth="200">
             <Label>K</Label>
             <Spinner fx:id="kSpinner" initialValue="64" min="32" max="128" maxWidth="100"/>

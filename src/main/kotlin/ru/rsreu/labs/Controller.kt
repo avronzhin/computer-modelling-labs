@@ -5,13 +5,17 @@ import javafx.scene.Group
 import javafx.scene.chart.*
 import javafx.scene.chart.XYChart.Series
 import javafx.scene.control.Label
+import javafx.scene.control.RadioButton
 import javafx.scene.control.Spinner
+import javafx.scene.control.ToggleGroup
 import ru.rsreu.labs.distribution.DistributionCriterionInfo
 import ru.rsreu.labs.distribution.DistributionInfoManager
 import ru.rsreu.labs.distribution.DistributionParametersEstimations
 import ru.rsreu.labs.generator.BoxMullerTransformGenerator
 import ru.rsreu.labs.generator.CentralMarginalProfitGenerator
+import ru.rsreu.labs.generator.Generator
 import ru.rsreu.labs.generator.MacLarenMarsagliaGenerator
+import java.lang.IllegalArgumentException
 import kotlin.math.*
 
 
@@ -33,30 +37,57 @@ class Controller {
 
     @FXML
     private lateinit var sectionsCountSpinner: Spinner<Int>
+    @FXML
+    private lateinit var radioButtonCMP: RadioButton
+    @FXML
+    private lateinit var radioButtonBoxMuller: RadioButton
 
     companion object {
         private const val EXPECTED_VALUE = 1.0
         private const val DISPERSION = 0.7
         private const val RANGE_START = EXPECTED_VALUE - 3 * DISPERSION
         private const val RANGE_END = EXPECTED_VALUE + 3 * DISPERSION
+        private const val DIVISION_INCREMENT = 2
+        private const val EPSILON = 1E-10
         fun createFunction(sectionsCount: Int): (Int) -> Double {
             val step = (RANGE_END - RANGE_START) / sectionsCount
-
-            fun f(x: Double): Double {
-                return exp(-1 * ((x - EXPECTED_VALUE).pow(2)) / (2 * DISPERSION.pow(2))) /
-                        (DISPERSION * sqrt(2 * PI))
-            }
-
             return { index: Int ->
                 val sectionStart = RANGE_START + step * index
-
-                val f1 = f(sectionStart)
-                val f2 = f(sectionStart + step)
-                step * (min(f1, f2) + abs(f1 - f2) / 2)
+                var value = getSum(sectionStart, step)
+                var divisionsCount: Long = DIVISION_INCREMENT.toLong()
+                var prevValue: Double
+                do {
+                    prevValue = value
+                    value = getSum(sectionStart, step, divisionsCount)
+                    divisionsCount *= DIVISION_INCREMENT
+                } while ((prevValue - value).absoluteValue > EPSILON)
+                value
             }
+        }
+
+        private fun f(x: Double): Double {
+            return exp(-1 * ((x - EXPECTED_VALUE).pow(2)) / (2 * DISPERSION)) /
+                    (sqrt(DISPERSION) * sqrt(2 * PI))
+        }
+
+        private fun getSum(sectionStart: Double, globalStep: Double, divisionsCount: Long = 1): Double {
+            val divisionSize = globalStep / divisionsCount
+            var sum = 0.0
+            for (i in 0 until divisionsCount) {
+                val f1 = f(sectionStart + i * divisionSize)
+                val f2 = f(sectionStart + (i + 1) * divisionSize)
+                sum += divisionSize * (min(f1, f2) + abs(f1 - f2) / 2)
+            }
+            return sum
         }
     }
 
+    @FXML
+    private fun initialize() {
+        val group = ToggleGroup()
+        radioButtonCMP.toggleGroup = group
+        radioButtonBoxMuller.toggleGroup = group
+    }
 
     @FXML
     private fun onStartClick() {
@@ -65,7 +96,8 @@ class Controller {
         val sectionsCount = sectionsCountSpinner.value
 
         val uniformValueGenerator = MacLarenMarsagliaGenerator(k)
-        val generator = BoxMullerTransformGenerator(uniformValueGenerator, EXPECTED_VALUE, DISPERSION)
+        val generator = getGenerator(uniformValueGenerator)
+
         val values = MutableList(n) { generator.nextDouble() }
         val manager = DistributionInfoManager(values, RANGE_START, RANGE_END)
 
@@ -79,6 +111,14 @@ class Controller {
         function.children.clear()
         hist.children.add(getHistogram(series.densityFunctionSeries, step, RANGE_START))
         function.children.add(getFunction(series.distributionFunctionSeries, step, RANGE_START))
+    }
+
+    private fun getGenerator(uniformValueGenerator: Generator): Generator {
+        if(radioButtonCMP.isSelected)
+            return CentralMarginalProfitGenerator(uniformValueGenerator, EXPECTED_VALUE, DISPERSION)
+        if(radioButtonBoxMuller.isSelected)
+            return BoxMullerTransformGenerator(uniformValueGenerator, EXPECTED_VALUE, DISPERSION)
+        throw IllegalStateException()
     }
 
     private fun getCriterionInfoText(criterionInfo: DistributionCriterionInfo): String {
@@ -101,7 +141,7 @@ class Controller {
         distributionFunctionSeries: List<Double>, step: Double, rangeStart: Double
     ): LineChart<Number, Number> {
         val lineChart = LineChart(NumberAxis(), NumberAxis())
-        lineChart.title = "Функция распределения"
+        lineChart.title = "Статистическая плотность распределения"
         val series = Series<Number, Number>()
 
         series.data.add(XYChart.Data(rangeStart, 0))
@@ -121,7 +161,7 @@ class Controller {
         densityFunctionSeries: List<Double>, step: Double, rangeStart: Double
     ): StackedBarChart<String, Number> {
         val barChart = StackedBarChart(CategoryAxis(), NumberAxis())
-        barChart.title = "Плотность распределения"
+        barChart.title = "Гистограмма частот"
         val series = Series<String, Number>()
         var currentValue = rangeStart
         densityFunctionSeries.forEach {

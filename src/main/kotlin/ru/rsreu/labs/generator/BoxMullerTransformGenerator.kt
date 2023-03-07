@@ -8,13 +8,18 @@ class BoxMullerTransformGenerator(
 
     private var cash: Double? = null
 
+    companion object{
+        private const val EPSILON = 1E-7
+    }
+
     override fun nextDouble(): Double {
         cash?.let {
             cash = null
             return it
         }
 
-        val r1 = generator.nextDouble()
+        var r1 = generator.nextDouble()
+        while (r1 < EPSILON) r1 = generator.nextDouble()
         val r2 = generator.nextDouble()
         val x = sqrt(-2 * ln(r1)) * cos(2 * PI * r2)
         val y = sqrt(-2 * ln(r1)) * sin(2 * PI * r2)

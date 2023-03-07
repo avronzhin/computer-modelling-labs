@@ -1,12 +1,7 @@
 package ru.rsreu.labs.distribution
 
 import ru.rsreu.labs.distribution.criterion.getChiSquaredCriterionValue
-import ru.rsreu.labs.distribution.criterion.getKolmogorovCriterionValue
-import java.lang.IllegalArgumentException
-import java.util.function.Function
-import java.util.function.UnaryOperator
 import kotlin.math.pow
-import kotlin.math.sqrt
 
 class DistributionInfoManager(
     private val values: List<Double>,
@@ -63,7 +58,7 @@ class DistributionInfoManager(
     private fun getProbabilities(sections: List<Int>) = sections.map(Int::toDouble).map { it / values.size }
 
     fun getCriterionInfo(function: (Int) -> Double, k: Int): DistributionCriterionInfo {
-        val chiSquaredCriterion =  getChiSquaredCriterionValue(values, k, rangeStart, rangeEnd, function)
+        val chiSquaredCriterion = getChiSquaredCriterionValue(values, k, rangeStart, rangeEnd, function)
         return DistributionCriterionInfo(chiSquaredCriterion)
     }
 
@@ -77,7 +72,7 @@ fun splitIntoSections(values: List<Double>, sectionsCount: Int, rangeStart: Doub
     val plotStep = (rangeEnd - rangeStart) / sectionsCount
     values.forEach {
         val plotNumber = ((it - rangeStart) / plotStep).toInt()
-        if(plotNumber in 0 until sectionsCount)
+        if (plotNumber in 0 until sectionsCount)
             plots[plotNumber]++
     }
     return plots
