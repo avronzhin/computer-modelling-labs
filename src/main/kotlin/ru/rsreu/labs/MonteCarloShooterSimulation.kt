@@ -12,7 +12,7 @@ class MonteCarloShooterSimulation(
         private const val ITERATION_COUNT = 1000000
     }
 
-    fun start() {
+    fun getProbability() : Double {
         var counter = 0
         repeat(ITERATION_COUNT) {
             val firstHitProbability = getRandomHitProbability()
@@ -22,7 +22,7 @@ class MonteCarloShooterSimulation(
             val hit = firstHit or secondHit
             if (hit) counter++
         }
-        println(counter.toDouble() / ITERATION_COUNT)
+        return counter.toDouble() / ITERATION_COUNT
     }
 
     private fun getRandomHitProbability(): Double {
