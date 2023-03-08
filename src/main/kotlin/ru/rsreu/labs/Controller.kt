@@ -39,10 +39,18 @@ class Controller {
         val groups = extractGroups()
         val simulation = MonteCarloShooterSimulation(groups, MacLarenMarsagliaGenerator(64))
         val result = simulation.getProbability()
+        val analyticalResult = simulation.getAnalyticalSolutionProbability()
         resultFlowPane.children.apply {
             clear()
-            add(Text("Вероятность хотя бы одного попадания в мишень $result"))
+            add(Text(prepareResultString(result, analyticalResult)))
+
         }
+    }
+
+    private fun prepareResultString(result: Double, analyticalResult: Double): String {
+        return "Вероятность хотя бы одного попадания в мишень:\n" +
+                "Вероятность рассчитанная аналитическа $analyticalResult\n" +
+                "Вероятность рассчитанная методом Монте-Карло $result"
     }
 
     private fun extractGroups(): List<ShooterGroup> {
