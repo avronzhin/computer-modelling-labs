@@ -4,16 +4,11 @@ import ru.rsreu.labs.generator.Generator
 import kotlin.math.floor
 
 class MonteCarloShooterSimulation(
-    private val groups: List<ShooterGroup>, private val generator: Generator
+    private val groups: List<ShooterGroup>, private val generator: Generator, private val iterationCount: Int
 ) {
-
-    companion object {
-        private const val ITERATION_COUNT = 1000000
-    }
-
     fun getProbability(): Double {
         var counter = 0
-        repeat(ITERATION_COUNT) {
+        repeat(iterationCount) {
             val firstHitProbability = getRandomHitProbability()
             val secondHitProbability = getRandomHitProbability()
             val firstHit = (generator.nextDouble() < firstHitProbability)
@@ -21,7 +16,7 @@ class MonteCarloShooterSimulation(
             val hit = firstHit or secondHit
             if (hit) counter++
         }
-        return counter.toDouble() / ITERATION_COUNT
+        return counter.toDouble() / iterationCount
     }
 
     private fun getRandomHitProbability(): Double {
@@ -36,7 +31,7 @@ class MonteCarloShooterSimulation(
         throw IllegalStateException()
     }
 
-     fun getAnalyticalSolutionProbability(): Double {
+    fun getAnalyticalSolutionProbability(): Double {
         val shooterCount = groups.sumOf { it.shooterCount }
         val groupPickAndHitProbabilities = groups.map {
             GroupPickAndHitProbabilities(
@@ -48,7 +43,8 @@ class MonteCarloShooterSimulation(
         groupPickAndHitProbabilities.forEach { firstPickedGroup ->
             groupPickAndHitProbabilities.forEach { secondPickerGroup ->
                 val pickProbability = firstPickedGroup.pickProbability * secondPickerGroup.pickProbability
-                val doubleMissProbability = (1.0 - firstPickedGroup.hitProbability) * (1.0 - secondPickerGroup.hitProbability)
+                val doubleMissProbability =
+                    (1.0 - firstPickedGroup.hitProbability) * (1.0 - secondPickerGroup.hitProbability)
                 val hitProbability = 1.0 - doubleMissProbability
                 sum += pickProbability * hitProbability
             }

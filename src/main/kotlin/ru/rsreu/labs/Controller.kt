@@ -10,6 +10,12 @@ import ru.rsreu.labs.generator.MacLarenMarsagliaGenerator
 
 
 class Controller {
+    companion object {
+        private const val MONTE_CARLO_ITERATION_COUNT = 100000
+        private const val CALCULATION_COUNT = 10
+        private const val T_CRITERION = 2.2621572
+    }
+
     @FXML
     private lateinit var resultFlowPane: FlowPane
 
@@ -37,20 +43,22 @@ class Controller {
     @FXML
     private fun onStartClick() {
         val groups = extractGroups()
-        val simulation = MonteCarloShooterSimulation(groups, MacLarenMarsagliaGenerator(64))
-        val result = simulation.getProbability()
+        val simulation = MonteCarloShooterSimulation(groups, MacLarenMarsagliaGenerator(), MONTE_CARLO_ITERATION_COUNT)
+        val values = MutableList(CALCULATION_COUNT) { simulation.getProbability() }
+        val confidenceInterval = getConfidenceInterval(values, T_CRITERION)
         val analyticalResult = simulation.getAnalyticalSolutionProbability()
         resultFlowPane.children.apply {
             clear()
-            add(Text(prepareResultString(result, analyticalResult)))
-
+            add(Text(prepareResultString(confidenceInterval, analyticalResult)))
         }
     }
 
-    private fun prepareResultString(result: Double, analyticalResult: Double): String {
-        return "Вероятность хотя бы одного попадания в мишень:\n" +
-                "Вероятность рассчитанная аналитическа $analyticalResult\n" +
-                "Вероятность рассчитанная методом Монте-Карло $result"
+    private fun prepareResultString(result: ConfidenceInterval, analyticalResult: Double): String {
+        return """
+            Вероятность хотя бы одного попадания в мишень:
+            Вероятность рассчитанная аналитическа $analyticalResult
+            Доверительный интервал $result
+        """.trimIndent()
     }
 
     private fun extractGroups(): List<ShooterGroup> {
