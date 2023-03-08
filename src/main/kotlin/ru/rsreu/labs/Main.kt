@@ -10,7 +10,9 @@ class ApplicationImpl : Application() {
         val fxmlLoader = FXMLLoader(ApplicationImpl::class.java.getResource("view.fxml"))
         val scene = Scene(fxmlLoader.load())
         stage.scene = scene
-        stage.isMaximized = true
+        stage.width = 800.0
+        stage.height = 500.0
+
         stage.show()
     }
 }

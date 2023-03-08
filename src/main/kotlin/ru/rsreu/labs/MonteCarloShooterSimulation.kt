@@ -4,9 +4,9 @@ import ru.rsreu.labs.generator.Generator
 import kotlin.math.floor
 
 class MonteCarloShooterSimulation(
-    private val groups: List<ShooterGroup>, private val generator: Generator, private val iterationCount: Int
-) {
-    fun getProbability(): Double {
+    groups: List<ShooterGroup>, private val generator: Generator, private val iterationCount: Int
+) : ShooterSimulation(groups) {
+    override fun calculate(): Double {
         var counter = 0
         repeat(iterationCount) {
             val firstHitProbability = getRandomHitProbability()
@@ -30,33 +30,4 @@ class MonteCarloShooterSimulation(
         }
         throw IllegalStateException()
     }
-
-    fun getAnalyticalSolutionProbability(): Double {
-        val shooterCount = groups.sumOf { it.shooterCount }
-        val groupPickAndHitProbabilities = groups.map {
-            GroupPickAndHitProbabilities(
-                it.shooterCount.toDouble() / shooterCount, it.hitProbability
-            )
-        }
-
-        var sum = 0.0
-        groupPickAndHitProbabilities.forEach { firstPickedGroup ->
-            groupPickAndHitProbabilities.forEach { secondPickerGroup ->
-                val pickProbability = firstPickedGroup.pickProbability * secondPickerGroup.pickProbability
-                val doubleMissProbability =
-                    (1.0 - firstPickedGroup.hitProbability) * (1.0 - secondPickerGroup.hitProbability)
-                val hitProbability = 1.0 - doubleMissProbability
-                sum += pickProbability * hitProbability
-            }
-        }
-        return sum
-    }
 }
-
-data class ShooterGroup(
-    val shooterCount: Int, val hitProbability: Double
-)
-
-data class GroupPickAndHitProbabilities(
-    val pickProbability: Double, val hitProbability: Double
-)
