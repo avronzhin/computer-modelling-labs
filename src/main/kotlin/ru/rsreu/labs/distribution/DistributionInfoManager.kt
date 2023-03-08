@@ -1,6 +1,5 @@
 package ru.rsreu.labs.distribution
 
-import ru.rsreu.labs.distribution.criterion.getChiSquaredCriterionValue
 import kotlin.math.pow
 
 class DistributionInfoManager(
@@ -57,11 +56,6 @@ class DistributionInfoManager(
 
     private fun getProbabilities(sections: List<Int>) = sections.map(Int::toDouble).map { it / values.size }
 
-    fun getCriterionInfo(function: (Int) -> Double, k: Int): DistributionCriterionInfo {
-        val chiSquaredCriterion = getChiSquaredCriterionValue(values, k, rangeStart, rangeEnd, function)
-        return DistributionCriterionInfo(chiSquaredCriterion)
-    }
-
     private fun splitIntoSections(values: List<Double>, sectionsCount: Int): List<Int> {
         return splitIntoSections(values, sectionsCount, rangeStart, rangeEnd)
     }
@@ -77,11 +71,6 @@ fun splitIntoSections(values: List<Double>, sectionsCount: Int, rangeStart: Doub
     }
     return plots
 }
-
-
-data class DistributionCriterionInfo(
-    val pearsonCriterion: Double
-)
 
 data class DistributionFunctionsSeries(
     val densityFunctionSeries: List<Double>,
