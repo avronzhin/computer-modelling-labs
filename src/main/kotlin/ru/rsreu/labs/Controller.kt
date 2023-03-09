@@ -77,7 +77,7 @@ class Controller {
         distributionFunctionSeries: List<Double>, step: Double, rangeStart: Double
     ): LineChart<Number, Number> {
         val lineChart = LineChart(NumberAxis(), NumberAxis())
-        lineChart.title = "Статистическая плотность распределения"
+        lineChart.title = "Статистическая функция распределения"
         val series = Series<Number, Number>()
 
         series.data.add(XYChart.Data(rangeStart, 0))
