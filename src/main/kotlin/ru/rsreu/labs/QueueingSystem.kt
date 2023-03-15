@@ -23,7 +23,7 @@ class QueueingSystem(
 
         val applicationCount = applications.size
         val approvedCount = approvedApplications.size
-        val approvedProbability = approvedCount.toDouble() / applicationCount
+        val failureProbability = 1.0 - approvedCount.toDouble() / applicationCount
         val averageStayTime = approvedApplications.map { it.serviceDuration }.average()
         val workTime = approvedApplications.sumOf { it.serviceDuration }
         val utilizationRate = workTime / (finishTime * channelCount)
@@ -33,7 +33,7 @@ class QueueingSystem(
         val profit = income - expenses
         return Pair(
             CharacteristicsEstimates(
-                applicationCount, approvedCount, approvedProbability, averageStayTime, utilizationRate
+                applicationCount, approvedCount, failureProbability, averageStayTime, utilizationRate
             ), Finance(
                 income, expenses, profit
             )
@@ -94,7 +94,7 @@ class QueueingSystem(
     data class CharacteristicsEstimates(
         val applicationCount: Int,
         val approvedCount: Int,
-        val approvedProbability: Double,
+        val failureProbability: Double,
         val averageStayTime: Double,
         val utilizationRate: Double,
     )

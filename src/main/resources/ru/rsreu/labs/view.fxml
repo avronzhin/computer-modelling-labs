@@ -4,6 +4,11 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
 <VBox xmlns:fx="http://javafx.com/fxml" alignment="CENTER" spacing="20.0"
       fx:controller="ru.rsreu.labs.Controller">
     <padding>
@@ -11,7 +16,46 @@
     </padding>
 
     <HBox>
+        <FlowPane maxWidth="250">
+            <Label>Количество каналов</Label>
+            <TextField fx:id="channelCountTextField">2</TextField>
+        </FlowPane>
+
+        <FlowPane maxWidth="250">
+            <Label>Интенсивность заявок (в час)</Label>
+            <TextField fx:id="intensityTextField">3.0</TextField>
+        </FlowPane>
+        <FlowPane maxWidth="250">
+            <Label>Среднее время обслуживания (в часах)</Label>
+            <TextField fx:id="serviceTimeTextField">0.5</TextField>
+        </FlowPane>
+    </HBox>
+
+    <HBox>
+        <FlowPane maxWidth="250">
+            <Label>Стоимость содержания канала (у. е. в час)</Label>
+            <TextField fx:id="channelCostTextField">3.0</TextField>
+        </FlowPane>
+        <FlowPane maxWidth="250">
+            <Label>Доход от заявки (у. е.)</Label>
+            <TextField fx:id="revenueTextField">5</TextField>
+        </FlowPane>
+    </HBox>
+
+    <HBox>
+        <FlowPane maxWidth="250">
+            <Label>Максимальное количество заявок</Label>
+            <TextField fx:id="applicationMaxCountTextField">100000</TextField>
+        </FlowPane>
+        <FlowPane maxWidth="250">
+            <Label>Время моделирования (в часах)</Label>
+            <TextField fx:id="modelTimeTextField">10000</TextField>
+        </FlowPane>
+
         <Button text="Запустить" onAction="#onStartClick"/>
     </HBox>
 
+    <HBox>
+        <TextArea fx:id="resultTextArea" editable="false"/>
+    </HBox>
 </VBox>
