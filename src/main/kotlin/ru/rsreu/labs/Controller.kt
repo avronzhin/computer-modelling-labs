@@ -10,7 +10,7 @@ class Controller {
         val system = QueueingSystem(
             channelCount = 2, channelCost = 3.0, intensity = 3.0, serviceTime = 0.5, revenue = 5.0
         )
-        val estimates = system.getCharacteristicsEstimates()
+        val estimates = system.getModellingCharacteristicsEstimates(1000, 100.0)
         println(estimates)
     }
 }
