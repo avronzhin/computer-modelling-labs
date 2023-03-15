@@ -6,14 +6,14 @@ import ru.rsreu.labs.generator.MacLarenMarsagliaGenerator
 class QueueingSystem(
     private val channelCount: Int,
     private val channelCost: Double,
-    private val intensity: Double,
-    private val serviceTime: Double,
-    private val revenue: Double
+    private val revenue: Double,
+    intensity: Double,
+    serviceTime: Double
 ) {
-
     private val arrivalTimeGenerator = ExponentialDistributionGenerator(MacLarenMarsagliaGenerator(), intensity)
     private val serviceDurationGenerator =
         ExponentialDistributionGenerator(MacLarenMarsagliaGenerator(), 1.0 / serviceTime)
+
 
     fun getModellingCharacteristicsEstimates(
         applicationMaxCount: Int, modelTime: Double
@@ -62,15 +62,11 @@ class QueueingSystem(
     private fun processApplications(applications: List<Application>): Pair<List<Application>, Double> {
         val channels = MutableList(channelCount) { Channel() }
         val approvedApplications = mutableListOf<Application>()
-        for (i in applications.indices) {
-            val application = applications[i]
-            for (j in channels.indices) {
-                val channel = channels[j]
-                if (channel.isFree(application.arrivalTime)) {
-                    channel.occupy(application.arrivalTime + application.serviceDuration)
-                    approvedApplications.add(application)
-                    break
-                }
+        applications.forEach { application ->
+            val channel = channels.find { it.isFree(application.arrivalTime) }
+            channel?.let {
+                it.occupy(application.arrivalTime + application.serviceDuration)
+                approvedApplications.add(application)
             }
         }
         val finishTime = channels.maxOfOrNull { it.release } ?: throw IllegalStateException()

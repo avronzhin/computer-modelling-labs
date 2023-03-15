@@ -65,7 +65,7 @@ class Controller {
         val revenue = revenueTextField.text.toDouble()
 
         return QueueingSystem(
-            channelCount, channelCost, intensity, serviceTime, revenue
+            channelCount, channelCost, revenue, intensity, serviceTime
         )
     }
 }
